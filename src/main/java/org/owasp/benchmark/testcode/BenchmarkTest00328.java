@@ -57,6 +57,12 @@ public class BenchmarkTest00328 extends HttpServlet {
 
         bar = (7 * 42) - num > 200 ? "This should never happen" : param;
 
+        // Validate bar to prevent SQL injection - only allow safe SQL identifier characters
+        if (!bar.matches("^[a-zA-Z0-9_]+$")) {
+            response.getWriter().println("Error processing request.");
+            return;
+        }
+
         String sql = "{call " + bar + "}";
 
         try {
