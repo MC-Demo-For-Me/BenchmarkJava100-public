@@ -69,6 +69,9 @@ public class BenchmarkTest01673 extends HttpServlet {
 
         String bar = new Test().doSomething(request, param);
 
+        // Sanitize input to prevent command injection - allow only safe characters
+        String sanitizedBar = bar.replaceAll("[^a-zA-Z0-9 ._-]", "_");
+
         java.util.List<String> argList = new java.util.ArrayList<String>();
 
         String osName = System.getProperty("os.name");
@@ -79,7 +82,7 @@ public class BenchmarkTest01673 extends HttpServlet {
             argList.add("sh");
             argList.add("-c");
         }
-        argList.add("echo " + bar);
+        argList.add("echo " + sanitizedBar);
 
         ProcessBuilder pb = new ProcessBuilder(argList);
 
