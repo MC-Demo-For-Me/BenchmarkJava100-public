@@ -52,19 +52,23 @@ public class BenchmarkTest00123 extends HttpServlet {
 
         // Code based on example from:
         // http://examples.javacodegeeks.com/core-java/crypto/encrypt-decrypt-file-stream-with-des/
-        // 8-byte initialization vector
+        // Upgraded from DES to AES-256 for security. Output includes algorithm identifier
+        // for backward compatibility with existing DES-encrypted entries.
+        // 16-byte initialization vector
         //		byte[] iv = {
         //			(byte)0xB2, (byte)0x12, (byte)0xD5, (byte)0xB2,
         //			(byte)0x44, (byte)0x21, (byte)0xC3, (byte)0xC3033
         //		};
         java.security.SecureRandom random = new java.security.SecureRandom();
-        byte[] iv = random.generateSeed(8); // DES requires 8 byte keys
+        byte[] iv = random.generateSeed(16); // AES requires 16 byte IV
 
         try {
-            javax.crypto.Cipher c = javax.crypto.Cipher.getInstance("DES/CBC/PKCS5Padding");
+            javax.crypto.Cipher c = javax.crypto.Cipher.getInstance("AES/CBC/PKCS5Padding");
 
-            // Prepare the cipher to encrypt
-            javax.crypto.SecretKey key = javax.crypto.KeyGenerator.getInstance("DES").generateKey();
+            // Prepare the cipher to encrypt with AES-256
+            javax.crypto.KeyGenerator keyGen = javax.crypto.KeyGenerator.getInstance("AES");
+            keyGen.init(256); // Use AES-256 for stronger security
+            javax.crypto.SecretKey key = keyGen.generateKey();
             java.security.spec.AlgorithmParameterSpec paramSpec =
                     new javax.crypto.spec.IvParameterSpec(iv);
             c.init(javax.crypto.Cipher.ENCRYPT_MODE, key, paramSpec);
@@ -92,8 +96,9 @@ public class BenchmarkTest00123 extends HttpServlet {
                             "passwordFile.txt");
             java.io.FileWriter fw =
                     new java.io.FileWriter(fileTarget, true); // the true will append the new data
+            // Include algorithm identifier for compatibility with legacy DES entries
             fw.write(
-                    "secret_value="
+                    "secret_value=AES:"
                             + org.owasp.esapi.ESAPI.encoder().encodeForBase64(result, true)
                             + "\n");
             fw.close();
