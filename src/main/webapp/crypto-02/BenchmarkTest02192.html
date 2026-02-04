@@ -2,14 +2,30 @@
 <html lang="en-US">
 <head>
 <meta charset="utf-8">
+<meta name="_csrf" content=""/>
+<meta name="_csrf_header" content="X-CSRF-TOKEN"/>
 <script src="/benchmark/js/jquery.min.js" type="text/javascript"></script>
 <script type="text/javascript" src="/benchmark/js/js.cookie.js"></script>
 <script src="/benchmark/js/testsuiteutils.js" type="text/javascript"></script>
 <link rel="icon" type="image/png" href="/benchmark/favicon.ico">
 <title>BenchmarkTest02192</title>
+<script type="text/javascript">
+    // CSRF Protection: Inject token from meta tag or cookie
+    $(document).ready(function() {
+        var token = $('meta[name="_csrf"]').attr('content');
+        // Fallback to cookie-based token (Spring Security CookieCsrfTokenRepository)
+        if (!token || token === '') {
+            token = Cookies.get('XSRF-TOKEN') || '';
+        }
+        if (token) {
+            $('#FormBenchmarkTest02192 input[name="_csrf"]').val(token);
+        }
+    });
+</script>
 </head>
 <body>
     <form action="/benchmark/crypto-02/BenchmarkTest02192" method="POST" id="FormBenchmarkTest02192" autocomplete="off">
+        <input type="hidden" name="_csrf" value="" />
         <p>Please make your car selection, and edit the value to be sent [value]:</p>
         <select name="BenchmarkTest02192" multiple>
             <option value="someSecret" selected>Audi. [someSecret]</option>
