@@ -19,9 +19,17 @@ package org.owasp.benchmark.helpers;
 
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 public class ThingFactory {
+
+    // Allowlist of permitted Thing implementations
+    private static final Set<String> ALLOWED_THINGS = new HashSet<>(
+        Arrays.asList("Thing1", "Thing2")
+    );
 
     public static ThingInterface createThing() {
 
@@ -35,7 +43,15 @@ public class ThingFactory {
                 return new Thing2();
             }
             props.load(thingproperties);
-            String which = "org.owasp.benchmark.helpers." + props.getProperty("thing");
+            String thingName = props.getProperty("thing");
+
+            // Validate against allowlist to prevent arbitrary class loading
+            if (thingName == null || !ALLOWED_THINGS.contains(thingName)) {
+                System.out.println("Invalid or disallowed thing name: " + thingName);
+                return new Thing1();
+            }
+
+            String which = "org.owasp.benchmark.helpers." + thingName;
 
             Class<?> thing = Class.forName(which);
             Constructor<?> thingConstructor = thing.getConstructor();
