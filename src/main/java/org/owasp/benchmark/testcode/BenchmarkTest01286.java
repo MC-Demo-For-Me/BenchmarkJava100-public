@@ -45,6 +45,13 @@ public class BenchmarkTest01286 extends HttpServlet {
 
         String bar = new Test().doSomething(request, param);
 
+        // Validate input to prevent command injection
+        if (!isValidInput(bar)) {
+            response.getWriter()
+                    .println("Invalid input detected. Only alphanumeric characters, spaces, hyphens, and periods are allowed.");
+            return;
+        }
+
         String cmd = "";
         String a1 = "";
         String a2 = "";
@@ -75,6 +82,14 @@ public class BenchmarkTest01286 extends HttpServlet {
             return;
         }
     } // end doPost
+
+    private boolean isValidInput(String input) {
+        if (input == null || input.isEmpty()) {
+            return true; // Allow empty input
+        }
+        // Only allow alphanumeric characters, spaces, hyphens, and periods
+        return input.matches("[a-zA-Z0-9 .\\-]*");
+    }
 
     private class Test {
 
