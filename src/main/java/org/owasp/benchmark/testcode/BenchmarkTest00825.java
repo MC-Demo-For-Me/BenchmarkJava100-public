@@ -71,6 +71,39 @@ public class BenchmarkTest00825 extends HttpServlet {
                 org.owasp.benchmark.helpers.ThingFactory.createThing();
         String bar = thing.doSomething(param);
 
+        // Validate and sanitize environment variable to prevent command injection
+        if (bar == null || bar.isEmpty()) {
+            response.getWriter()
+                    .println("Invalid input: environment variable cannot be empty.");
+            return;
+        }
+
+        // Parse environment variable format: NAME=value
+        int equalsIndex = bar.indexOf('=');
+        if (equalsIndex == -1 || equalsIndex == 0 || equalsIndex == bar.length() - 1) {
+            response.getWriter()
+                    .println("Invalid input: environment variable must be in format NAME=value.");
+            return;
+        }
+
+        String envName = bar.substring(0, equalsIndex);
+        String envValue = bar.substring(equalsIndex + 1);
+
+        // Validate environment variable name: only uppercase letters, digits, and underscores
+        if (!envName.matches("^[A-Z_][A-Z0-9_]*$")) {
+            response.getWriter()
+                    .println("Invalid input: environment variable name must contain only uppercase letters, digits, and underscores, and start with a letter or underscore.");
+            return;
+        }
+
+        // Validate environment variable value: prevent shell metacharacters and command injection
+        // Allow alphanumeric, spaces, and common safe characters, but block shell metacharacters
+        if (!envValue.matches("^[a-zA-Z0-9\\s\\.\\/\\-_:,@]+$")) {
+            response.getWriter()
+                    .println("Invalid input: environment variable value contains unsafe characters.");
+            return;
+        }
+
         String cmd =
                 org.owasp.benchmark.helpers.Utils.getInsecureOSCommandString(
                         this.getClass().getClassLoader());
