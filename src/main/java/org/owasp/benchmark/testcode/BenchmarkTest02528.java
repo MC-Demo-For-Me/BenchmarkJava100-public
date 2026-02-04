@@ -47,6 +47,12 @@ public class BenchmarkTest02528 extends HttpServlet {
 
         String bar = doSomething(request, param);
 
+        // Validate procedure name to prevent SQL injection
+        if (bar != null && !bar.matches("^[a-zA-Z0-9_]+$")) {
+            response.getWriter().println("Error processing request.");
+            return;
+        }
+
         String sql = "{call " + bar + "}";
 
         try {
