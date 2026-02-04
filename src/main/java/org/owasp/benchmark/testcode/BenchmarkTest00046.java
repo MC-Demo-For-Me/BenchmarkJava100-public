@@ -29,6 +29,29 @@ public class BenchmarkTest00046 extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
+    // HMAC secret key - loaded once at class initialization from environment variable or securely generated
+    private static final javax.crypto.spec.SecretKeySpec HMAC_SECRET_KEY = initializeSecretKey();
+
+    private static javax.crypto.spec.SecretKeySpec initializeSecretKey() {
+        String keyString = System.getenv("HMAC_SECRET_KEY");
+        if (keyString != null && !keyString.isEmpty()) {
+            try {
+                return new javax.crypto.spec.SecretKeySpec(keyString.getBytes("UTF-8"), "HmacSHA256");
+            } catch (java.io.UnsupportedEncodingException e) {
+                throw new RuntimeException("UTF-8 encoding not supported", e);
+            }
+        } else {
+            // Generate a secure random key once at startup (store this key securely in production)
+            byte[] keyBytes = new byte[32]; // 256 bits
+            try {
+                java.security.SecureRandom.getInstanceStrong().nextBytes(keyBytes);
+            } catch (java.security.NoSuchAlgorithmException e) {
+                new java.security.SecureRandom().nextBytes(keyBytes);
+            }
+            return new javax.crypto.spec.SecretKeySpec(keyBytes, "HmacSHA256");
+        }
+    }
+
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -47,7 +70,9 @@ public class BenchmarkTest00046 extends HttpServlet {
         else param = "";
 
         try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+            mac.init(HMAC_SECRET_KEY);
+
             byte[] input = {(byte) '?'};
             Object inputParam = param;
             if (inputParam instanceof String) input = ((String) inputParam).getBytes();
@@ -62,9 +87,9 @@ public class BenchmarkTest00046 extends HttpServlet {
                 }
                 input = java.util.Arrays.copyOf(strInput, i);
             }
-            md.update(input);
+            mac.update(input);
 
-            byte[] result = md.digest();
+            byte[] result = mac.doFinal();
             java.io.File fileTarget =
                     new java.io.File(
                             new java.io.File(org.owasp.benchmark.helpers.Utils.TESTFILES_DIR),
@@ -89,10 +114,13 @@ public class BenchmarkTest00046 extends HttpServlet {
         } catch (java.security.NoSuchAlgorithmException e) {
             System.out.println("Problem executing hash - TestCase");
             throw new ServletException(e);
+        } catch (java.security.InvalidKeyException e) {
+            System.out.println("Problem initializing HMAC - TestCase");
+            throw new ServletException(e);
         }
 
         response.getWriter()
                 .println(
-                        "Hash Test java.security.MessageDigest.getInstance(java.lang.String) executed");
+                        "Hash Test javax.crypto.Mac.getInstance(java.lang.String) executed");
     }
 }
