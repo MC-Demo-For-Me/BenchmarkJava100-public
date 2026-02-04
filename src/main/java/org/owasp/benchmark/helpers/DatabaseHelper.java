@@ -20,6 +20,7 @@ package org.owasp.benchmark.helpers;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -135,18 +136,20 @@ public class DatabaseHelper {
 
     private static void initData() {
         try {
-            executeSQLCommand(
-                    "INSERT INTO USERS (username, password) VALUES('User01', 'P455w0rd')");
-            executeSQLCommand(
-                    "INSERT INTO USERS (username, password) VALUES('User02', 'B3nchM3rk')");
-            executeSQLCommand("INSERT INTO USERS (username, password) VALUES('User03', 'a$c11')");
-            executeSQLCommand("INSERT INTO USERS (username, password) VALUES('foo', 'bar')");
+            executeParameterizedUpdate(
+                    "INSERT INTO USERS (username, password) VALUES(?, ?)", "User01", "P455w0rd");
+            executeParameterizedUpdate(
+                    "INSERT INTO USERS (username, password) VALUES(?, ?)", "User02", "B3nchM3rk");
+            executeParameterizedUpdate(
+                    "INSERT INTO USERS (username, password) VALUES(?, ?)", "User03", "a$c11");
+            executeParameterizedUpdate(
+                    "INSERT INTO USERS (username, password) VALUES(?, ?)", "foo", "bar");
 
-            executeSQLCommand("INSERT INTO SCORE (nick, score) VALUES('User03', 155)");
-            executeSQLCommand("INSERT INTO SCORE (nick, score) VALUES('foo', 40)");
+            executeParameterizedUpdate("INSERT INTO SCORE (nick, score) VALUES(?, ?)", "User03", 155);
+            executeParameterizedUpdate("INSERT INTO SCORE (nick, score) VALUES(?, ?)", "foo", 40);
 
-            executeSQLCommand(
-                    "INSERT INTO EMPLOYEE (first_name, last_name, salary) VALUES('foo', 'bar', 34567)");
+            executeParameterizedUpdate(
+                    "INSERT INTO EMPLOYEE (first_name, last_name, salary) VALUES(?, ?, ?)", "foo", "bar", 34567);
             conn.commit();
         } catch (Exception e1) {
             System.out.println("Problem with database init/reset: " + e1.getMessage());
@@ -171,6 +174,18 @@ public class DatabaseHelper {
     public static void executeSQLCommand(String sql) throws Exception {
         Statement stmt = getSqlStatement();
         stmt.executeUpdate(sql);
+    }
+
+    public static void executeParameterizedUpdate(String sql, Object... params) throws Exception {
+        if (conn == null) {
+            getSqlConnection();
+        }
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (int i = 0; i < params.length; i++) {
+                pstmt.setObject(i + 1, params[i]);
+            }
+            pstmt.executeUpdate();
+        }
     }
 
     public static void outputUpdateComplete(String sql, HttpServletResponse response)
