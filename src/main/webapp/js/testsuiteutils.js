@@ -54,12 +54,8 @@ function setCookie(event) {
     });
 }
 
-function escapeRegExp(str) {
-    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
-}
-
 function replaceAll(str, find, replace) {
-    return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+    return str.split(find).join(replace);
 }
 
 function submitHeaderForm(testcase) {
