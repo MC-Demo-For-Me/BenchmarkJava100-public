@@ -45,6 +45,13 @@ public class BenchmarkTest01287 extends HttpServlet {
 
         String bar = new Test().doSomething(request, param);
 
+        // Validate input to prevent command injection
+        if (!isValidEnvironmentValue(bar)) {
+            response.getWriter()
+                    .println("Invalid input: Only alphanumeric characters, underscores, hyphens, and dots are allowed.");
+            return;
+        }
+
         String cmd =
                 org.owasp.benchmark.helpers.Utils.getInsecureOSCommandString(
                         this.getClass().getClassLoader());
@@ -63,6 +70,21 @@ public class BenchmarkTest01287 extends HttpServlet {
             return;
         }
     } // end doPost
+
+    /**
+     * Validates that the environment variable value contains only safe characters.
+     * Allows alphanumeric characters, underscores, hyphens, and dots to prevent command injection.
+     *
+     * @param value the value to validate
+     * @return true if the value is safe, false otherwise
+     */
+    private boolean isValidEnvironmentValue(String value) {
+        if (value == null || value.isEmpty()) {
+            return true; // Empty values are safe
+        }
+        // Whitelist: only allow alphanumeric, underscore, hyphen, and dot
+        return value.matches("^[a-zA-Z0-9._-]*$");
+    }
 
     private class Test {
 
