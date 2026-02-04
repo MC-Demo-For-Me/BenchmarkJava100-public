@@ -10,6 +10,7 @@
 </head>
 <body>
     <form action="/benchmark/xss-04/BenchmarkTest02145" method="POST" id="FormBenchmarkTest02145" autocomplete="off">
+        {% csrf_token %}
         <div>
             <label>Please enter your details:</label>
         </div>
