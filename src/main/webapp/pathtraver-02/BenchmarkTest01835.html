@@ -7,9 +7,29 @@
 <script src="/benchmark/js/testsuiteutils.js" type="text/javascript"></script>
 <link rel="icon" type="image/png" href="/benchmark/favicon.ico">
 <title>BenchmarkTest01835</title>
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Fallback CSRF protection if Django template engine is not processing this file
+        // Check if Django's {% csrf_token %} was actually rendered
+        var csrfInput = $('input[name="csrfmiddlewaretoken"]');
+        if (csrfInput.length === 0 || csrfInput.val() === '') {
+            // Django template tag was not processed, implement CSRF manually
+            var csrfToken = Cookies.get('csrftoken');
+            if (csrfToken) {
+                // Create hidden input with Django's expected field name
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'csrfmiddlewaretoken',
+                    value: csrfToken
+                }).appendTo('#FormBenchmarkTest01835');
+            }
+        }
+    });
+</script>
 </head>
 <body>
     <form action="/benchmark/pathtraver-02/BenchmarkTest01835" method="POST" id="FormBenchmarkTest01835" autocomplete="off">
+        {% csrf_token %}
         <div>
             <p>Here is the image you are looking for: &nbsp;</p>
         </div>
