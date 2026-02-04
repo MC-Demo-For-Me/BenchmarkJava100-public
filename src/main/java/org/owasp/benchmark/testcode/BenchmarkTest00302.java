@@ -63,10 +63,16 @@ public class BenchmarkTest00302 extends HttpServlet {
             cmd = org.owasp.benchmark.helpers.Utils.getOSCommandString("echo");
         }
 
-        Runtime r = Runtime.getRuntime();
-
         try {
-            Process p = r.exec(cmd + bar);
+            // Split command into components and add user input as separate argument
+            java.util.List<String> cmdList = new java.util.ArrayList<>();
+            if (!cmd.isEmpty()) {
+                cmdList.addAll(java.util.Arrays.asList(cmd.split("\\s+")));
+            }
+            cmdList.add(bar);
+
+            ProcessBuilder pb = new ProcessBuilder(cmdList);
+            Process p = pb.start();
             org.owasp.benchmark.helpers.Utils.printOSCommandResults(p, response);
         } catch (IOException e) {
             System.out.println("Problem executing cmdi - TestCase");
